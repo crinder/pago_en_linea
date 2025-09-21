@@ -157,7 +157,6 @@ const Invoices = () => {
             )}
 
             <div className="flex gap-4 mt-6 items-center">
-              <Button action={handleBack} label={'Regresar'} />
               <Button action={handleNext} />
             </div>
 

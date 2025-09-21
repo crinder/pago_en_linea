@@ -109,7 +109,7 @@ const Pay = () => {
   }
 
   const handleBack = () => {
-    navigate("/pago_en_linea/facturas");
+    navigate("/pago_en_linea/datos_personales");
   }
 
   const getCardType = (number) => {

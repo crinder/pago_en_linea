@@ -5,6 +5,8 @@ import Button from '../utils/Button';
 import { useNavigate } from 'react-router-dom';
 import useForm from '../Hooks/useForm';
 import { useWizardStore } from '../utils/Persists';
+import Invoices from './Invoices';
+import { IconSearch } from '../utils/Icons';
 
 
 const Params = () => {
@@ -12,7 +14,9 @@ const Params = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const { values, handleChange, reset, handleCustomChange, setValue } = useForm({ identification: "" });
-  const {step,setStep,formData,setFormData,completedSteps,markStepCompleted,resetWizard} = useWizardStore();
+  const { step, setStep, formData, setFormData, completedSteps, markStepCompleted, resetWizard } = useWizardStore();
+  const [loading, setLoading] = useState(false);
+  const [factura, setFactura] = useState(false);
 
   const schema = z.object({
     identification: z.string().regex(/^\d+$/, "Solo se permiten números").min(5, "Debe tener al menos 5 dígitos").max(14, "Debe tener maximo 14 dígitos"),
@@ -23,13 +27,7 @@ const Params = () => {
     // Limpio el persist
     resetWizard();
 
-    const result = schema.safeParse(values);
-
-    if (!result.success) {
-      const issue = result.error?.issues.find(i => i.path[0] === "identification");
-      setError(issue?.message || "Error desconocido");
-      return;
-    }
+    
 
     setError("");
     console.log("Datos válidos:", result.data);
@@ -38,10 +36,10 @@ const Params = () => {
     markStepCompleted('/pago_en_linea/facturas');
     navigate("/pago_en_linea/facturas");
 
-  }; 
+  };
 
   useEffect(() => {
-    setValue("tipo_identificacion", "system"); 
+    setValue("tipo_identificacion", "system");
 
   }, []);
 
@@ -56,10 +54,29 @@ const Params = () => {
     }
   }, [values.identification]);
 
+  const buscar = () => {
+    
+    const result = schema.safeParse(values);
+
+    if (!result.success) {
+      const issue = result.error?.issues.find(i => i.path[0] === "identification");
+      setError(issue?.message || "Error desconocido");
+      return;
+    }
+    
+    setLoading(true);
+
+
+    setTimeout(() => {
+      setLoading(false);
+      setFactura(true);
+    }, 5000);
+  }
+
 
   return (
-    <section id='parametros' className='flex flex-col mt-10 gap-10 justify-center items-center'>
-      <div className='flex gap-5'>
+    <section id='parametros' className='flex flex-col mt-10 gap-12 justify-center items-center'>
+      <div className='flex gap-8'>
         <Select className='select__option' onValueChange={(val) => handleCustomChange("tipo_identificacion", val)}
           defaultValue="f"
           name="tipo_identificacion">
@@ -95,9 +112,40 @@ const Params = () => {
           </label>
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
+        <div>
+          <div
+            className="bg-colorGreen hover:scale-110  transition-all duration-300 hover: cursor-pointer text-accent-foreground font-semibold px-8 py-4 rounded-xl"
+            size="lg"
+            disabled={loading}
+            onClick={buscar}
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <IconSearch className="h-5 w-5 animate-pulse opacity-60" />
+                  <div className="absolute inset-0 animate-ping">
+                    <IconSearch className="h-5 w-5 opacity-20" />
+                  </div>
+                </div>
+                <span className="animate-pulse">Buscando...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 group">
+                <IconSearch className=" " />
+                <span className="hidden sm:inline transition-all duration-1000 ">Consultar</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      <Button action={handleNext} />
+
+      {factura &&
+        <div>
+          <Invoices />
+        </div>
+
+      }
 
     </section>
   )
